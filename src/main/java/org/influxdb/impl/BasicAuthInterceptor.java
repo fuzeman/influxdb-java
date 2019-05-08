@@ -11,14 +11,20 @@ public class BasicAuthInterceptor implements Interceptor {
 
   private String credentials;
 
-  public BasicAuthInterceptor(final String user, final String password) {
-    credentials = Credentials.basic(user, password);
+  public BasicAuthInterceptor(final boolean basicAuth, final String user, final String password) {
+    credentials = basicAuth ? Credentials.basic(user, password) : null;
   }
 
   @Override
   public Response intercept(final Chain chain) throws IOException {
     Request request = chain.request();
-    Request authenticatedRequest = request.newBuilder().header("Authorization", credentials).build();
-    return chain.proceed(authenticatedRequest);
+
+    Request.Builder builder = request.newBuilder();
+
+    if(credentials != null) {
+      builder.header("Authorization", credentials);
+    }
+
+    return chain.proceed(builder.build());
   }
 }

@@ -26,8 +26,21 @@ public enum InfluxDBFactory {
    * @return a InfluxDB adapter suitable to access a InfluxDB.
    */
   public static InfluxDB connect(final String url) {
+    return connect(url, true);
+  }
+
+  /**
+   * Create a connection to a InfluxDB.
+   *
+   * @param url
+   *            the url to connect to.
+   * @param basicAuth
+   *            Enable basic authentication
+   * @return a InfluxDB adapter suitable to access a InfluxDB.
+   */
+  public static InfluxDB connect(final String url, final boolean basicAuth) {
     Preconditions.checkNonEmptyString(url, "url");
-    return new InfluxDBImpl(url, null, null, new OkHttpClient.Builder());
+    return new InfluxDBImpl(url, basicAuth, null, null, new OkHttpClient.Builder());
   }
 
   /**
@@ -58,9 +71,22 @@ public enum InfluxDBFactory {
    * @return a InfluxDB adapter suitable to access a InfluxDB.
    */
   public static InfluxDB connect(final String url, final OkHttpClient.Builder client) {
+    return connect(url, true, client);
+  }
+
+  /**
+   * Create a connection to a InfluxDB.
+   *
+   * @param url
+   *            the url to connect to.
+   * @param client
+   *            the HTTP client to use
+   * @return a InfluxDB adapter suitable to access a InfluxDB.
+   */
+  public static InfluxDB connect(final String url, final boolean basicAuth, final OkHttpClient.Builder client) {
     Preconditions.checkNonEmptyString(url, "url");
     Objects.requireNonNull(client, "client");
-    return new InfluxDBImpl(url, null, null, client);
+    return new InfluxDBImpl(url, basicAuth, null, null, client);
   }
 
   /**
