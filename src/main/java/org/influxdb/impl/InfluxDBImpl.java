@@ -634,6 +634,26 @@ public class InfluxDBImpl implements InfluxDB {
    * {@inheritDoc}
    */
   @Override
+  public void query(final Query query, TimeUnit timeUnit, final Consumer<QueryResult> onSuccess, final Consumer<Throwable> onFailure) {
+    final Call<QueryResult> call = callQuery(query, TimeUtil.toTimePrecision(timeUnit));
+
+    call.enqueue(new Callback<QueryResult>() {
+      @Override
+      public void onResponse(final Call<QueryResult> call, final Response<QueryResult> response) {
+        onSuccess.accept(response.body());
+      }
+
+      @Override
+      public void onFailure(final Call<QueryResult> call, final Throwable throwable) {
+        onFailure.accept(throwable);
+      }
+    });
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
   public void query(final Query query, final int chunkSize, final Consumer<QueryResult> onNext) {
     query(query, chunkSize, onNext, () -> { });
   }
@@ -804,6 +824,13 @@ public class InfluxDBImpl implements InfluxDB {
    * Calls the influxDBService for the query.
    */
   private Call<QueryResult> callQuery(final Query query) {
+    return callQuery(query, null);
+  }
+
+  /**
+   * Calls the influxDBService for the query.
+   */
+  private Call<QueryResult> callQuery(final Query query, final String epoch) {
     Call<QueryResult> call;
     String db = query.getDatabase();
     if (db == null) {
@@ -811,13 +838,16 @@ public class InfluxDBImpl implements InfluxDB {
     }
     if (query instanceof BoundParameterQuery) {
         BoundParameterQuery boundParameterQuery = (BoundParameterQuery) query;
-        call = this.influxDBService.postQuery(db, query.getCommandWithUrlEncoded(),
-                boundParameterQuery.getParameterJsonWithUrlEncoded());
+
+        call = this.influxDBService.postQuery(
+            db, epoch, query.getCommandWithUrlEncoded(),
+            boundParameterQuery.getParameterJsonWithUrlEncoded()
+        );
     } else {
         if (query.requiresPost()) {
-          call = this.influxDBService.postQuery(db, query.getCommandWithUrlEncoded());
+          call = this.influxDBService.postQuery(db, epoch, query.getCommandWithUrlEncoded());
         } else {
-          call = this.influxDBService.query(db, query.getCommandWithUrlEncoded());
+          call = this.influxDBService.query(db, epoch, query.getCommandWithUrlEncoded());
         }
     }
     return call;

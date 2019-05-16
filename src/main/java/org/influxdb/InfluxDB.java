@@ -468,6 +468,21 @@ public interface InfluxDB extends AutoCloseable {
   public void query(final Query query, final Consumer<QueryResult> onSuccess, final Consumer<Throwable> onFailure);
 
   /**
+   * Execute a query against a database.
+   *
+   * One of the consumers will be executed.
+   *
+   * @param query
+   *            the query to execute.
+   * @param timeUnit the time unit of the results.
+   * @param onSuccess
+   *            the consumer to invoke when result is received
+   * @param onFailure
+   *            the consumer to invoke when error is thrown
+   */
+  public void query(final Query query, TimeUnit timeUnit, final Consumer<QueryResult> onSuccess, final Consumer<Throwable> onFailure);
+
+  /**
    * Execute a streaming query against a database.
    *
    * @param query

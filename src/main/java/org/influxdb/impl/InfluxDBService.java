@@ -52,16 +52,12 @@ interface InfluxDBService {
           @Query(EPOCH) String epoch, @Query(value = Q, encoded = true) String query,
           @Query(value = PARAMS, encoded = true) String params);
 
-  @GET("query")
-  public Call<QueryResult> query(@Query(DB) String db,
+  @POST("query")
+  public Call<QueryResult> postQuery(@Query(DB) String db, @Query(EPOCH) String epoch,
       @Query(value = Q, encoded = true) String query);
 
   @POST("query")
-  public Call<QueryResult> postQuery(@Query(DB) String db,
-      @Query(value = Q, encoded = true) String query);
-
-  @POST("query")
-  public Call<QueryResult> postQuery(@Query(DB) String db,
+  public Call<QueryResult> postQuery(@Query(DB) String db, @Query(EPOCH) String epoch,
           @Query(value = Q, encoded = true) String query, @Query(value = PARAMS, encoded = true) String params);
 
   @GET("query")
