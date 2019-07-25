@@ -608,7 +608,15 @@ public class InfluxDBImpl implements InfluxDB {
    */
   @Override
   public QueryResult query(final Query query) {
-    return executeQuery(callQuery(query));
+    return executeQuery(callQuery(query, false));
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public QueryResult query(final Query query, boolean useCache) {
+    return executeQuery(callQuery(query, useCache));
   }
 
   /**
@@ -616,7 +624,15 @@ public class InfluxDBImpl implements InfluxDB {
    */
   @Override
   public void query(final Query query, final Consumer<QueryResult> onSuccess, final Consumer<Throwable> onFailure) {
-    final Call<QueryResult> call = callQuery(query);
+    query(query, false, onSuccess, onFailure);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void query(final Query query, boolean useCache, final Consumer<QueryResult> onSuccess, final Consumer<Throwable> onFailure) {
+    final Call<QueryResult> call = callQuery(query, useCache);
     call.enqueue(new Callback<QueryResult>() {
       @Override
       public void onResponse(final Call<QueryResult> call, final Response<QueryResult> response) {
@@ -635,7 +651,19 @@ public class InfluxDBImpl implements InfluxDB {
    */
   @Override
   public void query(final Query query, TimeUnit timeUnit, final Consumer<QueryResult> onSuccess, final Consumer<Throwable> onFailure) {
-    final Call<QueryResult> call = callQuery(query, TimeUtil.toTimePrecision(timeUnit));
+    query(query, timeUnit, false, onSuccess, onFailure);
+  }
+
+  /**
+   * {@inheritDoc}
+   */
+  @Override
+  public void query(final Query query, TimeUnit timeUnit, boolean useCache, final Consumer<QueryResult> onSuccess, final Consumer<Throwable> onFailure) {
+    final Call<QueryResult> call = callQuery(
+        query,
+        TimeUtil.toTimePrecision(timeUnit),
+        useCache
+    );
 
     call.enqueue(new Callback<QueryResult>() {
       @Override
@@ -752,20 +780,33 @@ public class InfluxDBImpl implements InfluxDB {
     });
   }
 
+  @Override
+  public QueryResult query(final Query query, final TimeUnit timeUnit) {
+    return query(query, timeUnit, false);
+  }
+
   /**
    * {@inheritDoc}
    */
   @Override
-  public QueryResult query(final Query query, final TimeUnit timeUnit) {
+  public QueryResult query(final Query query, final TimeUnit timeUnit, boolean useCache) {
     Call<QueryResult> call = null;
     if (query instanceof BoundParameterQuery) {
         BoundParameterQuery boundParameterQuery = (BoundParameterQuery) query;
-        call = this.influxDBService.query(query.getDatabase(),
-                TimeUtil.toTimePrecision(timeUnit), query.getCommandWithUrlEncoded(),
-                boundParameterQuery.getParameterJsonWithUrlEncoded());
+        call = this.influxDBService.query(
+            query.getDatabase(),
+            TimeUtil.toTimePrecision(timeUnit),
+            query.getCommandWithUrlEncoded(),
+            boundParameterQuery.getParameterJsonWithUrlEncoded(),
+            useCache ? null : "no-cache"
+        );
     } else {
-        call = this.influxDBService.query(query.getDatabase(),
-                TimeUtil.toTimePrecision(timeUnit), query.getCommandWithUrlEncoded());
+        call = this.influxDBService.query(
+            query.getDatabase(),
+            TimeUtil.toTimePrecision(timeUnit),
+            query.getCommandWithUrlEncoded(),
+            useCache ? null : "no-cache"
+        );
     }
     return executeQuery(call);
   }
@@ -823,14 +864,14 @@ public class InfluxDBImpl implements InfluxDB {
   /**
    * Calls the influxDBService for the query.
    */
-  private Call<QueryResult> callQuery(final Query query) {
-    return callQuery(query, null);
+  private Call<QueryResult> callQuery(final Query query, boolean useCache) {
+    return callQuery(query, null, useCache);
   }
 
   /**
    * Calls the influxDBService for the query.
    */
-  private Call<QueryResult> callQuery(final Query query, final String epoch) {
+  private Call<QueryResult> callQuery(final Query query, final String epoch, boolean useCache) {
     Call<QueryResult> call;
     String db = query.getDatabase();
     if (db == null) {
@@ -840,14 +881,22 @@ public class InfluxDBImpl implements InfluxDB {
         BoundParameterQuery boundParameterQuery = (BoundParameterQuery) query;
 
         call = this.influxDBService.postQuery(
-            db, epoch, query.getCommandWithUrlEncoded(),
+            db, epoch,
+            query.getCommandWithUrlEncoded(),
             boundParameterQuery.getParameterJsonWithUrlEncoded()
         );
     } else {
         if (query.requiresPost()) {
-          call = this.influxDBService.postQuery(db, epoch, query.getCommandWithUrlEncoded());
+          call = this.influxDBService.postQuery(
+              db, epoch,
+              query.getCommandWithUrlEncoded()
+          );
         } else {
-          call = this.influxDBService.query(db, epoch, query.getCommandWithUrlEncoded());
+          call = this.influxDBService.query(
+              db, epoch,
+              query.getCommandWithUrlEncoded(),
+              useCache ? null : "no-cache"
+          );
         }
     }
     return call;

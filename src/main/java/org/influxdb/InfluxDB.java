@@ -456,6 +456,17 @@ public interface InfluxDB extends AutoCloseable {
   /**
    * Execute a query against a database.
    *
+   * @param query
+   *            the query to execute.
+   * @param useCache
+   *            use cached responses.
+   * @return a List of Series which matched the query.
+   */
+  public QueryResult query(final Query query, boolean useCache);
+
+  /**
+   * Execute a query against a database.
+   *
    * One of the consumers will be executed.
    *
    * @param query
@@ -474,6 +485,22 @@ public interface InfluxDB extends AutoCloseable {
    *
    * @param query
    *            the query to execute.
+   * @param useCache
+   *            use cached responses.
+   * @param onSuccess
+   *            the consumer to invoke when result is received
+   * @param onFailure
+   *            the consumer to invoke when error is thrown
+   */
+  public void query(final Query query, boolean useCache, final Consumer<QueryResult> onSuccess, final Consumer<Throwable> onFailure);
+
+  /**
+   * Execute a query against a database.
+   *
+   * One of the consumers will be executed.
+   *
+   * @param query
+   *            the query to execute.
    * @param timeUnit the time unit of the results.
    * @param onSuccess
    *            the consumer to invoke when result is received
@@ -481,6 +508,24 @@ public interface InfluxDB extends AutoCloseable {
    *            the consumer to invoke when error is thrown
    */
   public void query(final Query query, TimeUnit timeUnit, final Consumer<QueryResult> onSuccess, final Consumer<Throwable> onFailure);
+
+  /**
+   * Execute a query against a database.
+   *
+   * One of the consumers will be executed.
+   *
+   * @param query
+   *            the query to execute.
+   * @param timeUnit
+   *            the time unit of the results.
+   * @param useCache
+   *            use cached responses.
+   * @param onSuccess
+   *            the consumer to invoke when result is received
+   * @param onFailure
+   *            the consumer to invoke when error is thrown
+   */
+  public void query(final Query query, TimeUnit timeUnit, boolean useCache, final Consumer<QueryResult> onSuccess, final Consumer<Throwable> onFailure);
 
   /**
    * Execute a streaming query against a database.
@@ -560,6 +605,19 @@ public interface InfluxDB extends AutoCloseable {
    * @return a List of Series which matched the query.
    */
   public QueryResult query(final Query query, TimeUnit timeUnit);
+
+  /**
+   * Execute a query against a database.
+   *
+   * @param query
+   *            the query to execute.
+   * @param timeUnit
+   *            the time unit of the results.
+   * @param useCache
+   *            use cached responses.
+   * @return a List of Series which matched the query.
+   */
+  public QueryResult query(final Query query, TimeUnit timeUnit, boolean useCache);
 
   /**
    * Create a new Database.

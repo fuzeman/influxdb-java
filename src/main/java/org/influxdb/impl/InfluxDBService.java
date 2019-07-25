@@ -5,11 +5,7 @@ import org.influxdb.dto.QueryResult;
 import okhttp3.RequestBody;
 import okhttp3.ResponseBody;
 import retrofit2.Call;
-import retrofit2.http.Body;
-import retrofit2.http.GET;
-import retrofit2.http.POST;
-import retrofit2.http.Query;
-import retrofit2.http.Streaming;
+import retrofit2.http.*;
 
 interface InfluxDBService {
 
@@ -44,13 +40,21 @@ interface InfluxDBService {
       @Query(CONSISTENCY) String consistency, @Body RequestBody batchPoints);
 
   @GET("query")
-  public Call<QueryResult> query(@Query(DB) String db,
-      @Query(EPOCH) String epoch, @Query(value = Q, encoded = true) String query);
+  public Call<QueryResult> query(
+      @Query(DB) String db,
+      @Query(EPOCH) String epoch,
+      @Query(value = Q, encoded = true) String query,
+      @Header("Cache-Control") String cacheControl
+  );
 
   @POST("query")
-  public Call<QueryResult> query(@Query(DB) String db,
-          @Query(EPOCH) String epoch, @Query(value = Q, encoded = true) String query,
-          @Query(value = PARAMS, encoded = true) String params);
+  public Call<QueryResult> query(
+      @Query(DB) String db,
+      @Query(EPOCH) String epoch,
+      @Query(value = Q, encoded = true) String query,
+      @Query(value = PARAMS, encoded = true) String params,
+      @Header("Cache-Control") String cacheControl
+  );
 
   @POST("query")
   public Call<QueryResult> postQuery(@Query(DB) String db, @Query(EPOCH) String epoch,
